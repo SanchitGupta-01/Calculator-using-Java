@@ -3,56 +3,10 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class Calculator {
-    public enum Operations {
-        PLUS("+") {
-            public Double operate(Double a, Double b) {
-                return a + b;
-            }
-        } ,
-        MINUS("-") {
-            public Double operate(Double a, Double b) {
-                return a - b;
-            }
-        } ,
-        MULTIPLY("x") {
-            public Double operate(Double a, Double b) {
-                return a * b;
-            }
-        } ,
-        DIVIDE("/") {
-            public Double operate(Double a, Double b) throws ArithmeticException {
-                return a / b;
-            }
-        } ,
-        EQUALS("=") {
-            public Double operate(Double a, Double b) {
-                return 0d;
-            }
-        } ,
-        InvalidOperation("Invalid Operation") {
-            public Double operate(Double a, Double b) {return null;}
-        };
-        public abstract Double operate(Double a, Double b);
-        Double value;
-        String s;
-        Operations(String a) {
-            s = a;
-            value = 0d;
-        }
-        public static Operations getOperation(String a) {
-            for(Operations o: Operations.values()) {
-                if (o.s.equals(a))
-                    return o;
-            }
-            return Operations.InvalidOperation;
-        }
-
-    }
     private static JFrame mainFrame;
     private static JLabel expression = new JLabel("0");
     private static JPanel buttonsPanel = new JPanel();
-    private static JPanel numbersPanel = new JPanel(new GridLayout(6,4,2,2));
-    private static JButton[][] buttonArray = new JButton[][] {
+    private static JButton[][] buttonArray = new JButton[][]{
             {new JButton("%"), new JButton("sqrt"), new JButton("sqr"), new JButton("1/x")},
             {new JButton("CE"), new JButton("C"), new JButton("<-"), new JButton("/")},
             {new JButton("1"), new JButton("2"), new JButton("3"), new JButton("x")},
@@ -60,12 +14,13 @@ public class Calculator {
             {new JButton("7"), new JButton("8"), new JButton("9"), new JButton("+")},
             {new JButton("+/-"), new JButton("0"), new JButton("."), new JButton("=")}
     };
-    private GridBagConstraints gbc;
+    private static JPanel numbersPanel = new JPanel(new GridLayout(6, 4, 2, 2));
     private static Color onHoverColor = new Color(89, 89, 89, 200);
     private static Color mainBodyColor = new Color(91, 91, 91);
     private static Color buttonColor = new Color(46, 46, 46, 255);//(19, 19, 19, 241);
     private static int width = 400;
     private static int height = 550;
+    private GridBagConstraints gbc;
 
     public Calculator() {
         addJFrame();
@@ -73,6 +28,10 @@ public class Calculator {
         addTextField();
         addButtons();
         mainFrame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        Calculator calc = new Calculator();
     }
 
     private void addJFrame() {
@@ -127,14 +86,14 @@ public class Calculator {
     }
 
     private void addButtons() {
-        Rectangle buttonsPanelBounds = new Rectangle(0, expression.getHeight() + 20, mainFrame.getWidth(),
-                mainFrame.getHeight() - expression.getHeight() - 20);
-        Rectangle numberPanelBounds = new Rectangle(buttonsPanel.getX() + 5, buttonsPanel.getY() + 5,
-                buttonsPanel.getWidth() - 10, buttonsPanel.getHeight() - 10);
+//        Rectangle buttonsPanelBounds = new Rectangle(0, expression.getHeight() + 20, mainFrame.getWidth(),
+//                mainFrame.getHeight() - expression.getHeight() - 20);
+//        Rectangle numberPanelBounds = new Rectangle(buttonsPanel.getX() + 5, buttonsPanel.getY() + 5,
+//                buttonsPanel.getWidth() - 10, buttonsPanel.getHeight() - 10);
         buttonsPanel.setOpaque(false);
         numbersPanel.setOpaque(false);
-        buttonsPanel.setBounds(buttonsPanelBounds);
-        numbersPanel.setBounds(numberPanelBounds);
+//        buttonsPanel.setBounds(buttonsPanelBounds);
+//        numbersPanel.setBounds(numberPanelBounds);
 
         for (JButton[] jButtons : buttonArray) {
             for (JButton jButton : jButtons) {
@@ -164,15 +123,16 @@ public class Calculator {
                 numbersPanel.add(jButton);
             }
         }
-        buttonsPanel.add(numbersPanel);
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        buttonsPanel.add(numbersPanel, gbc);
         gbc.gridx = 0;
         gbc.gridy = 2;
         mainFrame.add(buttonsPanel, gbc);
     }
+
     private void showValue(String s) {
-        if (Operations.getOperation(s.substring(s.length() - 1)) != Operations.InvalidOperation) {
-            expression.setText(s.substring(0, s.length() - 1) + s);
+        if (Operations.getOperation(s) != Operations.InvalidOperation) {
+            expression.setText(expression.getText() + s);
             return;
         } else if (!"1234567890".contains(s)) return;
         if (expression.getText().equals("0")) {
@@ -182,7 +142,54 @@ public class Calculator {
         expression.setText(expression.getText() + s);
     }
 
-    public static void main(String[] args) {
-        Calculator calc = new Calculator();
+    public enum Operations {
+        PLUS("+") {
+            public Double operate(Double a, Double b) {
+                return a + b;
+            }
+        },
+        MINUS("-") {
+            public Double operate(Double a, Double b) {
+                return a - b;
+            }
+        },
+        MULTIPLY("x") {
+            public Double operate(Double a, Double b) {
+                return a * b;
+            }
+        },
+        DIVIDE("/") {
+            public Double operate(Double a, Double b) throws ArithmeticException {
+                return a / b;
+            }
+        },
+        EQUALS("=") {
+            public Double operate(Double a, Double b) {
+                return 0d;
+            }
+        },
+        InvalidOperation("Invalid Operation") {
+            public Double operate(Double a, Double b) {
+                return null;
+            }
+        };
+        Double value;
+        String s;
+
+        Operations(String a) {
+            s = a;
+            value = 0d;
+        }
+
+        public static Operations getOperation(String a) {
+            for (Operations o : Operations.values()) {
+                if (o.s.equals(a))
+                    return o;
+            }
+            return Operations.InvalidOperation;
+        }
+
+        public abstract Double operate(Double a, Double b);
+
     }
 }
