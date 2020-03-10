@@ -1,11 +1,14 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class Calculator {
     private static JFrame mainFrame;
     private static JLabel expression = new JLabel("0");
-    public static JLabel exp_label = new JLabel("");
+    private static JLabel exp_label = new JLabel("");
     private static JPanel buttonsPanel = new JPanel(new GridLayout(6, 4, 2, 2));
     private static JButton[][] buttonArray = new JButton[][]{
             {new JButton("%"), new JButton("CE"), new JButton("C"), new JButton("<-")},
@@ -20,10 +23,10 @@ public class Calculator {
     private static Color buttonColor = new Color(46, 46, 46, 255);//(19, 19, 19, 241);
     private static int width = 400;
     private static int height = 550;
-    private GridBagConstraints gbc;
-    private String lastOp = null;
-    private Double lastNo = 0d;
-    private Double result = 0d;
+    private static GridBagConstraints gbc;
+    private static String lastOp = null;
+    private static Double lastNo = 0d;
+    private static Double result = 0d;
 
     public Calculator() {
         addJFrame();
@@ -146,30 +149,19 @@ public class Calculator {
         mainFrame.add(buttonsPanel, gbc);
     }
 
+    private void operate(String s) {
+        double a = 0d;
+        try {
+            a = Double.parseDouble(s);
+        } catch(Exception e) {
+            System.out.println("weee");
+        }
+        result = Operations.getOperation(lastOp).operate(result, a);
+        lastOp = null;
+        lastNo = a;
+    }
+
     private void setValue(String s, String op) {
-        boolean bo = Operations.getOperation(s) == Operations.EQUALS;
-        if (bo || op != null) { // when equal op or operation has to be done
-            if (bo && exp_label.getText().length() <= 1)
-                return;
-
-            Double a = bo ? 0 : Double.parseDouble(s);
-            result = Operations.getOperation(op).operate(result, a);
-            lastOp = null;
-            lastNo = a;
-            expression.setText(result.toString());
-            return;
-        }
-
-        if (!"1234567890".contains(s)) { // when operation and no last op
-//            if (exp_label.getText().equals(""))
-//                return;
-
-            exp_label.setText(exp_label.getText() + lastNo + s);
-            lastOp = s;
-            expression.setText("0");
-            return;
-        }
-
         if (expression.getText().equals("0")) {
             expression.setText(s);
             result = Double.parseDouble(s);
@@ -177,7 +169,37 @@ public class Calculator {
             return;
         }
 
+        if (expression.getText().equals(result.toString())) {
+            if ("1234567890".contains(s)) {
+                expression.setText(s);
+            } else {
+                String str = exp_label.getText();
+                exp_label.setText(str.substring(0, str.length()-1) + s);
+                lastOp = s;
+            }
+            return;
+        }
+
+        if (!"1234567890".contains(s)) { // when operation and no last op
+            if (lastOp != null) {
+                try {
+                    operate(expression.getText());
+                } catch(Exception e) {
+                    System.out.println("Error - " + e.getMessage());
+                }
+            }
+            String[] sar = new String[] {"sqr", "sqrt", "<-", "C", ".", "1/x"};
+            if (Arrays.asList(sar).contains(s)) {
+                System.out.println("ar");
+            }
+            lastOp = s;
+            exp_label.setText(exp_label.getText() + lastNo + s);
+            expression.setText(result.toString());
+            return;
+        }
+
         expression.setText(expression.getText() + s);
+        lastNo = Double.parseDouble(lastNo.intValue() + s);
     }
 
     public enum Operations {
@@ -206,11 +228,48 @@ public class Calculator {
                 return a;
             }
         },
+        C("C") {
+            public Double operate(Double a, Double b) {
+                expression.setText("0");
+                exp_label.setText("");
+                lastNo = 0d;
+                return 0d;
+            }
+        },
+        BACKSPACE("<-") {
+            public Double operate(Double a, Double b) {
+                String s = exp_label.getText();
+                if (Operations.getOperation(String.valueOf(s.charAt(s.length()-1))) != Operations.InvalidOperation) {
+                    expression.setText(lastNo.toString());
+                    exp_label.setText(s.substring(0, s.length()-1));
+                } else {
+                    lastNo = Double.parseDouble(lastNo.toString().substring(0, lastNo.toString().length() - 1));
+                }
+                return result;
+            }
+        },
+        RECIPROCAL("1/x") {
+            public Double operate(Double a, Double b) {
+                return (double)1/result;
+            }
+        },
+        SQR("sqr") {
+            public Double operate(Double a, Double b) {
+                EQUALS.operate(a, b);
+                return result;
+            }
+        },
+        SQRT("sqrt") {
+            public Double operate(Double a, Double b) {
+                return Math.sqrt(a);
+            }
+        },
         InvalidOperation("Invalid Operation") {
             public Double operate(Double a, Double b) {
                 return null;
             }
         };
+
         Double value;
         String s;
 
