@@ -1,9 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 public class Calculator {
     private static JFrame mainFrame;
@@ -24,7 +22,7 @@ public class Calculator {
     private static int width = 400;
     private static int height = 550;
     private static GridBagConstraints gbc;
-    private static String lastOp = null;
+    private static String lastOp = "+";
     private static Double lastNo = 0d;
     private static Double result = 0d;
 
@@ -154,22 +152,35 @@ public class Calculator {
         try {
             a = Double.parseDouble(s);
         } catch(Exception e) {
-            System.out.println("weee");
+            System.out.println("Error");
         }
         result = Operations.getOperation(lastOp).operate(result, a);
         lastOp = null;
         lastNo = a;
     }
 
+    public boolean checkInput(String s) {
+        if ("1234567890".contains(s))
+            return true;
+        for (JButton[] buttons : buttonArray) {
+            for (JButton b: buttons) {
+                if (b.getText().equals(s))
+                    return true;
+            }
+        }
+        return false;
+    }
+
     private void setValue(String s, String op) {
-        if (expression.getText().equals("0")) {
+        if (!checkInput(s))
+            return;
+        if (expression.getText().equals("0") && "1234567890".contains(s)) {
             expression.setText(s);
-            result = Double.parseDouble(s);
-            lastNo = result;
+            lastNo = Double.parseDouble(s);
             return;
         }
 
-        if (expression.getText().equals(result.toString())) {
+        if (expression.getText().equals(result.toString()) && !lastNo.equals(result)) {
             if ("1234567890".contains(s)) {
                 expression.setText(s);
             } else {
@@ -190,7 +201,9 @@ public class Calculator {
             }
             String[] sar = new String[] {"sqr", "sqrt", "<-", "C", ".", "1/x"};
             if (Arrays.asList(sar).contains(s)) {
+                Operations.getOperation(s).operate(result, 0d);
                 System.out.println("ar");
+                return;
             }
             lastOp = s;
             exp_label.setText(exp_label.getText() + lastNo + s);
@@ -233,6 +246,7 @@ public class Calculator {
                 expression.setText("0");
                 exp_label.setText("");
                 lastNo = 0d;
+                result = 0d;
                 return 0d;
             }
         },
